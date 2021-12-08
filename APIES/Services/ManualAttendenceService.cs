@@ -89,29 +89,44 @@ namespace APIES.Services
         {
             //var lastIn = _context.HrmAtdManual.Where(x => x.EmployeeId == EmployeeID).OrderBy(x => x.Time).FirstOrDefault();
 
-            var result = (from head in _context.HrmAtdManual.Where(e => e.EmployeeId == EmployeeID).AsEnumerable()
-                          select new AttendenceInfoDto()
-                          {
-                              Date = head.Date,
-                              Time = DateTime.ParseExact(String.Format("{0:dd/MM/yyyy h:mm:ss tt}", head.Time), "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture),
-                              inTime = head.AttendanceTypeCode == "1" ? false : true,
-                              outTime = head.AttendanceTypeCode == "2" ? false : true,
-                          }).OrderByDescending(x => x.Date).ThenByDescending(x=> x.Time.TimeOfDay).FirstOrDefault();
+            
 
-            var result2 = (from head in _context.HrmAtdManual.Where(e => e.EmployeeId == EmployeeID).AsEnumerable()
-                           select new AttListDto()
-                           {
-                               Date = head.Date,
-                               AttendenceType = head.AttendanceTypeCode == "1" ? "In" : "Out",
-                               Time = DateTime.ParseExact(String.Format("{0:dd/MM/yyyy h:mm:ss tt}", head.Time), "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture),
-                               AttDateANDTime = String.Format("{0:dd/MM/yyyy h:mm:ss tt}", head.Time),
-                               SLNO = 0
-                           }).Where(p=> p.Date == DateTime.Today).OrderByDescending(x => x.Date).ThenByDescending(x => x.Time.TimeOfDay).ToList();
-            int counter = 1;
-            result2.ForEach(x => x.SLNO = counter++);
+            var isData = _context.HrmAtdManual.Where(e => e.EmployeeId == EmployeeID).ToList();
+            AttendenceInfoDto result = new AttendenceInfoDto();
+            if (isData.Count() != 0)
+            {
+                 result = (from head in _context.HrmAtdManual.Where(e => e.EmployeeId == EmployeeID).AsEnumerable()
+                              select new AttendenceInfoDto()
+                              {
+                                  Date = head.Date,
+                                  Time = DateTime.ParseExact(String.Format("{0:dd/MM/yyyy h:mm:ss tt}", head.Time), "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture),
+                                  inTime = head.AttendanceTypeCode == "1" ? false : true,
+                                  outTime = head.AttendanceTypeCode == "2" ? false : true,
+                              }).OrderByDescending(x => x.Date).ThenByDescending(x => x.Time.TimeOfDay).FirstOrDefault();
 
-            result.AttendenceList = result2;
-            return result;
+                var result2 = (from head in _context.HrmAtdManual.Where(e => e.EmployeeId == EmployeeID).DefaultIfEmpty().AsEnumerable()
+                               select new AttListDto()
+                               {
+                                   Date = head.Date,
+                                   AttendenceType = head.AttendanceTypeCode == "1" ? "In" : "Out",
+                                   Time = DateTime.ParseExact(String.Format("{0:dd/MM/yyyy h:mm:ss tt}", head.Time), "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture),
+                                   AttDateANDTime = String.Format("{0:dd/MM/yyyy h:mm:ss tt}", head.Time),
+                                   SLNO = 0
+                               }).Where(p => p.Date == DateTime.Today).OrderByDescending(x => x.Date).ThenByDescending(x => x.Time.TimeOfDay).ToList();
+                int counter = 1;
+                result2.ForEach(x => x.SLNO = counter++);
+
+                result.AttendenceList = result2;
+                return result;
+            }
+
+            else
+            {
+                result.inTime = false;
+                result.outTime = false;
+                result.AttendenceList = new List<AttListDto>();
+                return result;
+            }
         }
 
         //public void DeleteSalesDaliveryLocation(SalesDeliveryLocation SalseDeliveryLocation)
