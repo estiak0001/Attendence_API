@@ -119,6 +119,13 @@ namespace APIES
             app.UseAuthentication();
             app.UseAuthorization();
 
+            //app.UseSwagger();
+            //app.UseSwaggerUI(c =>
+            //{
+            //    c.SwaggerEndpoint("/swagger/swagger.json", "My API v1");
+
+            //});
+
             app.UseEndpoints(endpoints => endpoints.MapControllers());
         }
     }

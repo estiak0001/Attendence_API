@@ -12,8 +12,8 @@ namespace APIES.Models.ManualAttendence
         public string AttdEntryType { get; set; }
         public string EmployeeId { get; set; }
         public string AttendanceTypeCode { get; set; }   
-        public string Date { get; set; }
-        public string Time { get; set; }   
+        public DateTime Date { get; set; }
+        public DateTime Time { get; set; }   
         public string Remarks { get; set; }
         public string Luser { get; set; }      
         public string Ldate { get; set; }
@@ -24,5 +24,8 @@ namespace APIES.Models.ManualAttendence
         public string Latitude { get; set; }
         public string Longitude { get; set; }
         public string type { get; set; }
+        public bool IsInTime { get; set; }
+        public bool IsOutTime { get; set; }
+        public List<HrmAtdManualDto> AttendenceInfo { get; set; }
     }
 }

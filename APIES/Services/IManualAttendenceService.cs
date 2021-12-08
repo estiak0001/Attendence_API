@@ -1,5 +1,6 @@
 ﻿using APIES.GctlDBEntities;
 using APIES.Helper.ModelHelper;
+using APIES.Models.ManualAttendence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,7 @@ namespace APIES.Services
         void DeleteManualAttendence(HrmAtdManual hrmAtdManual);
         void AddManualAttendence(HrmAtdManual hrmAtdManual, string type);
         bool ManualAttendenceExists(string salseDaliveryLocation);
+        AttendenceInfoDto GetLandingInfo(string EmployeeID);
         bool Save();
     }
 }

@@ -56,8 +56,17 @@ namespace APIES.Controllers
             _manualAttendenceService.AddManualAttendence(manualAttendenceEntity, hrmAtdManualDto.type);
             _manualAttendenceService.Save();
 
+            var mapedValue = _mapper.Map<HrmAtdManualDto>(manualAttendenceEntity);
+            var result = _manualAttendenceService.GetLandingInfo(mapedValue.EmployeeId);
+            return Ok(result);
+        }
 
-            return Ok(_mapper.Map<HrmAtdManualDto>(manualAttendenceEntity));
+        [AllowAnonymous]
+        [HttpGet("getAttendenceList/{EmployeeID}")]
+        public ActionResult GetAttendenceList(string EmployeeID)
+        {
+            var Resut = _manualAttendenceService.GetLandingInfo(EmployeeID);
+            return Ok(Resut);
         }
 
         //[AllowAnonymous]
