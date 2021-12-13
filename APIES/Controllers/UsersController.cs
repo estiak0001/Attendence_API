@@ -48,14 +48,15 @@ namespace APIES.Controllers
             var user = _userService.Authenticate(model.Username, model.Password);
             if (user == null)
                 return BadRequest(new { message = "Username or password is incorrect" });
+            
             var res = _mapper.Map<CoreUserInfoDto>(user);
             //var sc = _userService.GetSalesConcerns(res.SalesConcernId);
-            
+            var uu = _userService.getUser(res.EmployeeId);
             res.AppVersion = "1.0.1";
-            ////res.VatPercentage = 5;           
-            ////res.SalseTeamName = sc.SalesConcernName;
-            ////var DashboardData = _userService.orderTarget(res.EmployeeId);
-            ////res.OrderTarget = DashboardData.Totaltarget;
+            res.FirstName = uu.FirstName;
+            res.LastName = uu.LastName;
+            res.Department = uu.Department;
+            res.Designation = uu.Designation;
             return Ok(res);
         }
 

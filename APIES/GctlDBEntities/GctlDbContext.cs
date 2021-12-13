@@ -1,5 +1,7 @@
 ﻿using System;
 using APIES.Helper.ModelHelper;
+using APIES.Models.Leave;
+using APIES.Models.Report;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -15,9 +17,13 @@ namespace APIES.GctlDBEntities
             : base(options)
         {
         }
-
+        
+        [Obsolete]
+        public virtual DbQuery<EmployeeJobCard> EmployeeJobCard { get; set; }
         [Obsolete]
         public virtual DbQuery<CustomID> customID { get; set; }
+        [Obsolete]
+        public virtual DbQuery<IsLeaveExist> IsLeaveExist { get; set; }
         public virtual DbSet<AccDurationType> AccDurationType { get; set; }
         public virtual DbSet<AccMonths> AccMonths { get; set; }
         public virtual DbSet<AccPeriod> AccPeriod { get; set; }

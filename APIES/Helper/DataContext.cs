@@ -2,6 +2,8 @@
 //using APIES.Models.customerPO;
 //using APIES.Models.CustomID;
 //using APIES.Models.Transport;
+using APIES.Helper.ModelHelper;
+using APIES.Models.Report;
 using AutoMapper.Configuration;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -24,6 +26,13 @@ namespace APIES.Helper
         {
 
         }
+
+
+        [Obsolete]
+        public virtual DbQuery<EmployeeJobCard> EmployeeJobCard { get; set; }
+        [Obsolete]
+        public virtual DbQuery<CustomID> customID { get; set; }
+
         //[Obsolete]
         //public virtual DbQuery<CustomID> customID { get; set; }
         //[Obsolete]

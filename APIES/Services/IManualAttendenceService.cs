@@ -1,6 +1,8 @@
 ﻿using APIES.GctlDBEntities;
 using APIES.Helper.ModelHelper;
+using APIES.Models.Leave;
 using APIES.Models.ManualAttendence;
+using APIES.Models.Report;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,5 +20,12 @@ namespace APIES.Services
         bool ManualAttendenceExists(string salseDaliveryLocation);
         AttendenceInfoDto GetLandingInfo(string EmployeeID);
         bool Save();
+
+        //Report
+
+        IEnumerable<EmployeeJobCard> EmployeeJobCard(string FromDate, string ToDate, string EmployeeID);
+        ResponseModel LeaveApply(LeaveApplicationEntryDto Model);
+        List<ATDLeaveType> GetAllLeaveType();
+        LeaveApplicationEntryDto GetLeaveInfo(string LeaveAppEntryId);
     }
 }

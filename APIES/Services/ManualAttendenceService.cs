@@ -1,11 +1,19 @@
 ﻿using APIES.GctlDBEntities;
 using APIES.Helper.ModelHelper;
+using APIES.Models.Leave;
 using APIES.Models.ManualAttendence;
+using APIES.Models.Report;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Net.Mail;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace APIES.Services
@@ -89,8 +97,6 @@ namespace APIES.Services
         {
             //var lastIn = _context.HrmAtdManual.Where(x => x.EmployeeId == EmployeeID).OrderBy(x => x.Time).FirstOrDefault();
 
-            
-
             var isData = _context.HrmAtdManual.Where(e => e.EmployeeId == EmployeeID).ToList();
             AttendenceInfoDto result = new AttendenceInfoDto();
             if (isData.Count() != 0)
@@ -127,6 +133,296 @@ namespace APIES.Services
                 result.AttendenceList = new List<AttListDto>();
                 return result;
             }
+        }
+
+        [Obsolete]
+        public IEnumerable<EmployeeJobCard> EmployeeJobCard(string FromDate, string ToDate, string EmployeeID)
+        {
+            string[] SplitFromDate = FromDate.Split('/');
+            string ConvertFromDate = SplitFromDate[2] + "-" + SplitFromDate[1] + "-" + SplitFromDate[0];
+
+            string[] SplitToDate = ToDate.Split('/');
+            string ConvertToDate = SplitToDate[2] + "-" + SplitToDate[1] + "-" + SplitToDate[0];
+
+            var result = (IEnumerable<EmployeeJobCard>)_context.EmployeeJobCard.FromSqlRaw<EmployeeJobCard>("Execute dbo.prc_EmployeeAttendenceySummery @StartDateTime = {0}, @EndDateTime = {1}, @EmployeeID = {2}", ConvertFromDate, ConvertToDate, EmployeeID).ToList();
+
+            return result;
+        }
+
+        [Obsolete]
+        public ResponseModel LeaveApply(LeaveApplicationEntryDto Model)
+        {
+            ResponseModel response = new ResponseModel();
+            var IsExist = _context.HrmLeaveApplicationEntry.FirstOrDefault(x => x.LeaveAppEntryId == Model.LeaveAppEntryId);
+            var IsApplicable = _context.IsLeaveExist.FromSqlRaw<IsLeaveExist>("Execute dbo.Prc_SingelEmployeeLeaveBalaceStatus @EmployeeID = {0}, @LeaveType = {1}, @NoOfDay = {2}", Model.EmployeeID, Model.LeaveTypeId, Model.NoOfDay).AsEnumerable().FirstOrDefault();
+            if(IsExist == null)
+            {
+                if (IsApplicable.status == "Yes")
+                {
+                    string LoginEmployeeID = Model.EmployeeID;
+                    var MaxID = _context.customID.FromSqlRaw<CustomID>("Select ISNULL(MAX(CAST(LeaveAppEntryId AS int)),1)+1 as Code from HRM_LeaveApplicationEntry").FirstOrDefault();
+                    Model.LeaveAppEntryId = MaxID.Code.ToString();
+                    var Leaveid = SaveInfo(Model);
+
+                    var empInfo = _context.HrmEmployee.Where(x => x.EmployeeId == Model.EmployeeID).FirstOrDefault();
+
+                    foreach (var day in Model.LeaveDaysList)
+                    {
+                        DateTime dateCon = new DateTime();
+                        dateCon = DateTime.ParseExact(day, "MM/dd/yyyy", null);
+
+                        HrmLeaveApplicationDays leaveDays = new HrmLeaveApplicationDays();
+                        leaveDays.LeaveAppEntryId = Model.LeaveAppEntryId;
+                        leaveDays.Days = dateCon;
+                        SaveLeaveDaysInfo(leaveDays, LoginEmployeeID);
+                    }
+                    string p = "<div class='card'>< img src = '' alt = '' style = '' >< div class='container'> <h4><b>John Doe</b></h4> <p>Architect & Engineer</p> </div></div>";
+
+                    var t = _context.HrmAtdLeaveType.Where(x => x.LeaveTypeId == Model.LeaveTypeId).FirstOrDefault();
+                    LeaveInfoMail Leavemodels = new LeaveInfoMail();
+                    Leavemodels.EmployeeNAme = empInfo.FirstName + " " + empInfo.LastName;
+                    Leavemodels.Messege = "This is " + empInfo.FirstName + " " + empInfo.LastName + " I want to take leave from " + Model.StartDate + " to " + Model.EndDate;
+                    Leavemodels.TotalDayes = Model.NoOfDay.ToString();
+                    Leavemodels.DateFrom = Model.StartDate;
+                    Leavemodels.DateTo = Model.EndDate;
+                    Leavemodels.LeaveFormat = Model.ApplyLeaveFormat == "FullLeave" ? "Full Leave" : "Short Leave";
+                    Leavemodels.LeaveType = t.Name;
+                    Leavemodels.Reason = Model.Reason;
+                    Leavemodels.LinkID = Leaveid.LeaveAppEntryId;
+                    Leavemodels.ShortLeaveFrom = Model.ShortLeaveFrom;
+                    Leavemodels.ShortLeaveTo = Model.ShortLeaveTo;
+                    Leavemodels.TotalTime = Model.ShortLeaveTime;
+                    Leavemodels.FormatString = p;
+
+                    SendMail(Leavemodels);
+                    response.success = true;
+                    response.message = "Successfully Leave applied.";
+                    return response;
+                }
+                else
+                {
+                    response.success = true;
+                    response.message = "Something Went Wrong. Please Try Again!";
+                    return response;
+                }
+            }
+            else
+            {
+                if (IsExist.HrapprovalStatus == "Pending")
+                {
+                    string LoginEmployeeID = Model.EmployeeID;
+                    UpdateInfo(Model.LeaveAppEntryId, Model);
+                    DeleteExistInfo(Model.LeaveAppEntryId);
+                    foreach (var day in Model.LeaveDaysList)
+                    {
+                        DateTime dateCon = new DateTime();
+                        dateCon = DateTime.ParseExact(day, "MM/dd/yyyy", null);
+
+                        HrmLeaveApplicationDays leaveDays = new HrmLeaveApplicationDays();
+                        leaveDays.LeaveAppEntryId = Model.LeaveAppEntryId;
+                        leaveDays.Days = dateCon;
+                        SaveLeaveDaysInfo(leaveDays, LoginEmployeeID);
+                    }
+                    response.success = true;
+                    response.message = "Successfully Leave Updated.";
+                    return response;
+                }
+                else
+                {
+                    response.success = false;
+                    response.message = "You can't update this application! This application already " + IsExist.HrapprovalStatus;
+                    return response;
+                }
+            }
+            
+        }
+        public bool DeleteExistInfo(string LeaveID)
+        {
+            var result = _context.HrmLeaveApplicationDays.Where(x => x.LeaveAppEntryId == LeaveID).ToList();
+            if (result != null)
+            {
+                _context.HrmLeaveApplicationDays.RemoveRange(_context.HrmLeaveApplicationDays.Where(c => c.LeaveAppEntryId == LeaveID));
+                //context.HRM_LeaveApplicationDays.Remove(result);
+                _context.SaveChanges();
+                return true;
+            }
+            return false;
+        }
+
+        public bool UpdateInfo(string id, LeaveApplicationEntryDto model)
+        {
+            var result = _context.HrmLeaveApplicationEntry.FirstOrDefault(x => x.LeaveAppEntryId == model.LeaveAppEntryId);
+            if (result != null)
+            {
+                DateTime StartDate = new DateTime();
+                StartDate = DateTime.ParseExact(model.StartDate, "dd/MM/yyyy", null);
+
+                DateTime EndDate = new DateTime();
+                EndDate = DateTime.ParseExact(model.EndDate, "dd/MM/yyyy", null);
+
+                result.EmployeeId = model.EmployeeID;
+                result.BossEmpAutoId = model.BossEmpAutoId;
+                result.Hod = model.HOD;
+                result.ApplyLeaveFormat = model.ApplyLeaveFormat;
+                result.LeaveTypeId = model.LeaveTypeId;
+                result.StartDate = StartDate;
+                result.EndDate = EndDate;
+                result.NoOfDay = Convert.ToDecimal(model.NoOfDay);
+                result.Reason = model.Reason;
+                result.ModifyDate = DateTime.Now;
+                if (model.ApplyLeaveFormat == "ShortLeave")
+                {
+                    string TodayDate = DateTime.Now.ToString("yyyy-MM-dd");
+                    TimeSpan spanEndTIme = DateTime.ParseExact(model.ShortLeaveFrom,
+                                        "hh:mm tt", CultureInfo.InvariantCulture).TimeOfDay;
+                    DateTime fromtime = Convert.ToDateTime(TodayDate + " " + spanEndTIme);
+
+                    TimeSpan spanEndTIme2 = DateTime.ParseExact(model.ShortLeaveTime,
+                                            "hh:mm", CultureInfo.InvariantCulture).TimeOfDay;
+                    result.ShortLeaveFrom = fromtime;
+                    result.ShortLeaveTo = fromtime;
+                    result.ShortLeaveTime = spanEndTIme2;
+                }
+
+            }
+            _context.SaveChanges();
+            return true;
+        }
+
+        public void SendMail(LeaveInfoMail model)
+        {
+            if (model != null)
+            {
+                var BodyHtml = model.Messege;
+                MailMessage mail = new MailMessage();
+                mail.To.Add(new MailAddress("tawfiq_islam@yahoo.com"));
+                mail.From = new MailAddress("gctlproject@gmail.com");
+                //mail.To.Add(new MailAddress("en.estiak@gmail.com"));
+                //mail.From = new MailAddress("eng.estiakahmed@gmail.com");
+
+                mail.Subject = "Leave Application From " + model.EmployeeNAme;
+                string Body = BodyHtml;
+                mail.Body = Body;
+                mail.IsBodyHtml = true;
+                SmtpClient smtp = new SmtpClient();
+                smtp.Host = "smtp.gmail.com";
+                smtp.Port = 587;
+                smtp.UseDefaultCredentials = false;
+                smtp.Credentials = new System.Net.NetworkCredential("gctlproject@gmail.com", "##Gctl12345##"); // Enter seders User name and password       
+                smtp.EnableSsl = true;
+                smtp.Send(mail);
+            }
+            else
+            {
+
+            }
+        }
+
+        public void SaveLeaveDaysInfo(HrmLeaveApplicationDays model, string LoginEmployeeID)
+        {
+            _context.HrmLeaveApplicationDays.Add(model);
+            _context.SaveChanges();
+        }
+
+        public HrmLeaveApplicationEntry SaveInfo(LeaveApplicationEntryDto model)
+        {
+            string TodayDate = DateTime.Now.ToString("yyyy-MM-dd");
+            DateTime StartDate = new DateTime();
+            StartDate = DateTime.ParseExact(model.StartDate, "dd/MM/yyyy", null);
+
+            DateTime EndDate = new DateTime();
+            EndDate = DateTime.ParseExact(model.EndDate, "dd/MM/yyyy", null);
+
+            HrmLeaveApplicationEntry coreCom = new HrmLeaveApplicationEntry();
+            coreCom.LeaveAppEntryId = model.LeaveAppEntryId;
+            coreCom.EmployeeId = model.EmployeeID;
+            coreCom.LeaveTypeId = model.LeaveTypeId;
+            coreCom.StartDate = StartDate;
+            coreCom.EndDate = EndDate;
+            coreCom.NoOfDay = Convert.ToDecimal(model.NoOfDay);
+            coreCom.HalfDay = "N";
+            coreCom.FirstOrSecondHalf = "";
+            coreCom.Reason = model.Reason;
+            coreCom.BossEmpAutoId = model.BossEmpAutoId;
+            coreCom.Hod = model.HOD;
+            coreCom.IsApproved = "";
+            coreCom.ConfirmationRemarks = "";
+            coreCom.CompanyCode = "001";
+            coreCom.HodapprovalStatus = "";
+            coreCom.HodapprovalRemarks = "";
+            coreCom.HrapprovalStatus = "Pending";
+            coreCom.HrapprovalRemarks = "";
+            coreCom.ApplyLeaveFormat = model.ApplyLeaveFormat;
+            coreCom.LeaveApplyProcess = "Manual";
+            coreCom.Luser = model.EmployeeID;
+            coreCom.Ldate = DateTime.Now;
+            if (model.ApplyLeaveFormat == "ShortLeave")
+            {
+                TimeSpan spanEndTIme = DateTime.ParseExact(model.ShortLeaveFrom,
+                                    "hh:mm tt", CultureInfo.InvariantCulture).TimeOfDay;
+                DateTime fromtime = Convert.ToDateTime(TodayDate + " " + spanEndTIme);
+
+                TimeSpan spanEndTIme2 = DateTime.ParseExact(model.ShortLeaveTime,
+                                        "hh:mm", CultureInfo.InvariantCulture).TimeOfDay;
+                coreCom.ShortLeaveFrom = fromtime;
+                coreCom.ShortLeaveTo = fromtime;
+                coreCom.ShortLeaveTime = spanEndTIme2;
+            }
+            _context.HrmLeaveApplicationEntry.Add(coreCom);
+            _context.SaveChanges();
+            return coreCom;
+        }
+
+        public List<ATDLeaveType> GetAllLeaveType()
+        {
+           var result = (from head in _context.HrmAtdLeaveType.AsEnumerable()
+                      select new ATDLeaveType()
+                      {
+                          LeaveTypeId = head.LeaveTypeId,
+                          Name = head.Name
+                      }).ToList();
+
+            return result;
+        }
+
+        public LeaveApplicationEntryDto GetLeaveInfo(string LeaveAppEntryId)
+        {
+            var result = (from psi in _context.HrmLeaveApplicationEntry
+                          .Where(psi => psi.LeaveAppEntryId == LeaveAppEntryId).DefaultIfEmpty().AsEnumerable()
+                          select new
+                          {
+                              LeaveAppEntryId = psi.LeaveAppEntryId,
+                              EmployeeID = psi.EmployeeId,
+                              BossEmpAutoId = psi.BossEmpAutoId,
+                              HOD = psi.Hod,
+                              ApplyLeaveFormat = psi.ApplyLeaveFormat,
+                              LeaveTypeId = psi.LeaveTypeId,
+                              StartDate = psi.StartDate,
+                              NoOfDay = psi.NoOfDay,
+                              EndDate = psi.EndDate,
+                              ShortLeaveFrom = psi.ShortLeaveFrom,
+                              ShortLeaveTime = psi.ShortLeaveTime == null ? null : DateTime.ParseExact(psi.ShortLeaveTime.ToString(), "hh:mm:ss", CultureInfo.InvariantCulture).TimeOfDay.ToString(),
+                              ShortLeaveTO = psi.ShortLeaveTo,
+                              Reason = psi.Reason
+                          }).AsEnumerable().Select(a => new LeaveApplicationEntryDto()
+                          {
+                              LeaveAppEntryId = a.LeaveAppEntryId.ToString(),
+                              EmployeeID = a.EmployeeID,
+                              BossEmpAutoId = a.BossEmpAutoId,
+                              HOD = a.HOD,
+
+                              ApplyLeaveFormat = a.ApplyLeaveFormat,
+                              LeaveTypeId = a.LeaveTypeId,
+                              StartDate = ((DateTime)a.StartDate).ToString("dd/MM/yyyy"),
+                              NoOfDay = a.NoOfDay,
+                              EndDate = ((DateTime)a.EndDate).ToString("dd/MM/yyyy"),
+                              ShortLeaveFrom = a.ShortLeaveFrom == null ? null : ((DateTime)(a.ShortLeaveFrom)).ToString("hh:mm:ss tt"),
+                              ShortLeaveTime = a.ShortLeaveTime,
+                              ShortLeaveTo = a.ShortLeaveTO == null ? null : ((DateTime)(a.ShortLeaveTO)).ToString("hh:mm:ss tt"),
+                              Reason = a.Reason
+                          }).FirstOrDefault();
+
+            return result;
         }
 
         //public void DeleteSalesDaliveryLocation(SalesDeliveryLocation SalseDeliveryLocation)

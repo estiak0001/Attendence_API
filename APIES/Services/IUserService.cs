@@ -1,6 +1,7 @@
 ﻿
 using APIES.GctlDBEntities;
 using APIES.Helper;
+using APIES.Models.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -36,6 +37,8 @@ namespace ApexAPI.Services
         void Delete(int id);
         bool Save();
         //TotalTargetDTO orderTarget(string TSO);
+
+        CoreUserInfoDto getUser(string EmployeeID);
     }
 
     public class UserService : IUserService
@@ -83,6 +86,7 @@ namespace ApexAPI.Services
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             //user.Token = tokenHandler.WriteToken(token);
+            var returnUser = user;
 
             return user.WithoutPassword();
         }
@@ -324,6 +328,91 @@ namespace ApexAPI.Services
         public bool Save()
         {
             return (_context.SaveChanges() >= 0);
+        }
+
+        public CoreUserInfoDto getUser(string EmployeeID)
+        {
+
+            var result = (from offic in _context.HrmEmployeeOfficialInfo.Where(x => x.EmployeeId == EmployeeID).AsEnumerable()
+                          join emm in _context.HrmEmployee
+                            on new { X1 = offic.EmployeeId } equals new { X1 = emm.EmployeeId }
+                            into rmp
+                          from gen in rmp.DefaultIfEmpty()
+                          join dess in _context.HrmDefDesignation
+                            on new { X1 = offic.DesignationCode } equals new { X1 = dess.DesignationCode }
+                            into rmpdes
+                          from des in rmpdes.DefaultIfEmpty()
+                          join depp in _context.HrmDefDepartment
+                            on new { X1 = offic.DepartmentCode } equals new { X1 = depp.DepartmentCode }
+                            into rmpdep
+                          from dep in rmpdep.DefaultIfEmpty()
+
+                          join gg in _context.HrmDefGrade
+                            on new { X1 = offic.GradeCode } equals new { X1 = gg.GradeCode }
+                            into rmpgg
+                          from gr in rmpgg.DefaultIfEmpty()
+
+                          select new
+                          {
+                              EmployeeID = offic.EmployeeId,
+                              FirstName = gen.FirstName,
+                              LastName = gen.LastName,
+                              FatherName = gen.FatherName,
+                              MotherName = gen.MotherName,
+                              //FirstNameBangla = gen.FirstNameBangla,
+                              //LastNameBangla = gen.LastNameBangla,
+                              DateOfBirthOrginal = ((DateTime)gen.DateOfBirthOrginal).ToString("dd/MM/yyyy"),
+                              BirthCertificateNo = gen.BirthCertificateNo,
+                              SexCode = gen.SexCode,
+                              BloodGroupCode = gen.BloodGroupCode,
+                              NationalityCode = gen.NationalityCode,
+                              NationalIDNO = gen.NationalIdno,
+                              ReligionCode = gen.ReligionCode,
+                              MaritalStatusCode = gen.MaritalStatusCode,
+                              Telephone = gen.Telephone,
+                              PersonalEmail = gen.PersonalEmail,
+                              PhotoUrl = gen.PhotoUrl,
+                              SignatureImageUrl = gen.SignatureImageUrl,
+                              CompanyCode = offic.CompanyCode,
+                              BranchCode = offic.BranchCode,
+                              DepartmentCode = offic.DepartmentCode,
+                              DesignationCode = offic.DesignationCode,
+                              ShiftCode = offic.ShiftCode,
+                              EmpTypeCode = offic.EmpTypeCode,
+                              EmploymentNatureId = offic.EmploymentNatureId,
+                              GrossSalary = offic.GrossSalary,
+                              ReportingTo = offic.ReportingTo,
+                              HOD = offic.Hod,
+                              JoiningDate = ((DateTime)offic.JoiningDate).ToString("dd/MM/yyyy"),
+                              EmployeeStatus = offic.EmployeeStatus,
+                              MobileNo = offic.MobileNo,
+                              Email = offic.Email,
+                              EmployeeFullName = gen.FirstName + " " + gen.LastName,
+                              designationNAme = des.DesignationName,
+                              DepartmentName = dep.DepartmentName,
+                              PlaceOfBirth = gen.PlaceOfBirth,
+                              gradeName = gr.GradeName,
+                              gradeCode = offic.GradeCode,
+                              curr = offic.CurrencyCode,
+                              paymentPeriod = offic.PaymentPeriodId,
+                              prbationPeriod = offic.ProbationPeriod,
+                              proabType = offic.ProbationPeriodType,
+                              
+                          }).AsEnumerable().Select(a => new CoreUserInfoDto()
+                          {
+                              EmployeeId = a.EmployeeID,
+                              FirstName = a.FirstName,
+                              LastName = a.LastName,
+                              CompanyCode = a.CompanyCode,
+                              BranchCode = a.BranchCode,
+                              DepartmentCode = a.DepartmentCode,
+                              DesignationCode = a.DesignationCode,
+                              EmpTypeCode = a.EmpTypeCode,
+                              Type = a.EmpTypeCode,
+                              Department = a.DepartmentName,
+                              Designation = a.designationNAme,
+                          }).FirstOrDefault();
+            return result;
         }
         //public bool DeviceIDExists(string DeviceID)
         //{

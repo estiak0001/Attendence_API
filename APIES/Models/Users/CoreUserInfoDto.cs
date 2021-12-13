@@ -33,18 +33,17 @@ namespace APIES.Models.Users
         public DateTime? ModifyDate { get; set; }
         public string Token { get; set; }
         public string AppVersion { get; set; }
-        //public string SalesConcernID { get; set; }
-        //public string SalseTeamName { get; set; }
-        //public decimal VatPercentage { get; set; }
-        //public decimal? OrderTarget { get; set; }
 
-        // new
-        //public string Hocid { get; set; }
-        //public string SalesConcernId { get; set; }
-        //public string WarehouseId { get; set; }
-        //public string ShowRoomId { get; set; }
-        //public string Scwtsid { get; set; }
-        //public string DistrictId { get; set; }
-        //public string ThanaCode { get; set; }
+        public string CompanyCode { get; set; }
+        public string Company { get; set; }
+        public string BranchCode { get; set; }
+        public string Branch { get; set; }
+        public string DivisionCode { get; set; }
+        public string Division { get; set; }
+        public string DepartmentCode { get; set; }
+        public string Department { get; set; }
+        public string DesignationCode { get; set; }
+        public string Designation { get; set; }
+        public string EmpTypeCode { get; set; }
     }
 }
