@@ -425,6 +425,13 @@ namespace APIES.Services
             return result;
         }
 
+        [Obsolete]
+        public List<LeaveBalanceStatus> GetEmployeeLeaveStatus(string EmployeeID)
+        {
+            var balance = (List<LeaveBalanceStatus>)_context.LeaveBalanceStatus.FromSqlRaw<LeaveBalanceStatus>("Execute dbo.Prc_EmployeeLeaveBalaceStatus @EmployeeID = {0}", EmployeeID).ToList();
+            return balance;
+        }
+
         //public void DeleteSalesDaliveryLocation(SalesDeliveryLocation SalseDeliveryLocation)
         //{
         //    throw new NotImplementedException();

@@ -19,6 +19,8 @@ namespace APIES.GctlDBEntities
         }
         
         [Obsolete]
+        public virtual DbQuery<LeaveBalanceStatus> LeaveBalanceStatus { get; set; }
+        [Obsolete]
         public virtual DbQuery<EmployeeJobCard> EmployeeJobCard { get; set; }
         [Obsolete]
         public virtual DbQuery<CustomID> customID { get; set; }

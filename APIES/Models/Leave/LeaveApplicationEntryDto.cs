@@ -47,5 +47,6 @@ namespace APIES.Models.Leave
         //public HttpFileCollectionBase FileString { get; set; }
 
         public List<ATDLeaveType> ATDLeaveType { get; set; }
+        public List<LeaveBalanceStatus> LeaveBalanceStatus { get; set; }
     }
 }

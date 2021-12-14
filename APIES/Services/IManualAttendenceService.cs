@@ -27,5 +27,6 @@ namespace APIES.Services
         ResponseModel LeaveApply(LeaveApplicationEntryDto Model);
         List<ATDLeaveType> GetAllLeaveType();
         LeaveApplicationEntryDto GetLeaveInfo(string LeaveAppEntryId);
+        List<LeaveBalanceStatus> GetEmployeeLeaveStatus(string EmployeeID);
     }
 }

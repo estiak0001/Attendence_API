@@ -36,13 +36,14 @@ namespace APIES.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("leaveLandingPage/{LeaveEntryID}")]
-        public ActionResult<LeaveApplicationEntryDto> LeaveLandingPage(string LeaveEntryID)
+        [HttpGet("leaveLandingPage/{LeaveEntryID}/{EmployeeID}")]
+        public ActionResult<LeaveApplicationEntryDto> LeaveLandingPage(string LeaveEntryID, string EmployeeID)
         {
             if(LeaveEntryID== null)
             {
                 LeaveApplicationEntryDto data = new LeaveApplicationEntryDto();
                 data.ATDLeaveType = _manualAttendenceService.GetAllLeaveType();
+                data.LeaveBalanceStatus = _manualAttendenceService.GetEmployeeLeaveStatus(EmployeeID);
                 return data;
             }
             else
@@ -50,6 +51,7 @@ namespace APIES.Controllers
                 LeaveApplicationEntryDto data = new LeaveApplicationEntryDto();
                 data = _manualAttendenceService.GetLeaveInfo(LeaveEntryID);
                 data.ATDLeaveType = _manualAttendenceService.GetAllLeaveType();
+                data.LeaveBalanceStatus = _manualAttendenceService.GetEmployeeLeaveStatus(EmployeeID);
                 return data;
             }
         }
