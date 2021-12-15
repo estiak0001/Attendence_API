@@ -1,4 +1,6 @@
-﻿using System;
+﻿using APIES.Models.Holiday;
+using APIES.Models.Weekend;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -45,8 +47,10 @@ namespace APIES.Models.Leave
         public List<string> LeaveDaysList { get; set; }
 
         //public HttpFileCollectionBase FileString { get; set; }
-
+        public List<string> CompannyWeekendList { get; set; }
         public List<ATDLeaveType> ATDLeaveType { get; set; }
         public List<LeaveBalanceStatus> LeaveBalanceStatus { get; set; }
+        //public List<CompannyWeekend> CompannyWeekendList { get; set; }
+        public List<ATD_Holiday> HolidayList { get; set; }
     }
 }

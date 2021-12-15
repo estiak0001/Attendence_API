@@ -1,8 +1,10 @@
 ﻿using APIES.GctlDBEntities;
 using APIES.Helper.ModelHelper;
+using APIES.Models.Holiday;
 using APIES.Models.Leave;
 using APIES.Models.ManualAttendence;
 using APIES.Models.Report;
+using APIES.Models.Weekend;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
@@ -430,6 +432,53 @@ namespace APIES.Services
         {
             var balance = (List<LeaveBalanceStatus>)_context.LeaveBalanceStatus.FromSqlRaw<LeaveBalanceStatus>("Execute dbo.Prc_EmployeeLeaveBalaceStatus @EmployeeID = {0}", EmployeeID).ToList();
             return balance;
+        }
+
+
+
+        public List<ATD_Holiday> GetAllHolidayInfo()
+        {
+            var result = (from hol in _context.HrmAtdHoliday
+                          join holtype in _context.HrmAtdHolidayType on hol.HolidayType equals holtype.HolidayType
+                          into g
+                          from d in g.DefaultIfEmpty()
+                          select new
+                          {
+                              HolidayCode = hol.HolidayCode,
+                              HolidayName = hol.HolidayName,
+                              FromDate = hol.FromDate,
+                              ToDate = hol.ToDate,
+                              HolidayType = d.HolidayTypeName
+
+                          }).AsEnumerable().Select(a => new ATD_Holiday()
+                          {
+                              //HolidayCode = a.HolidayCode,
+                              //HolidayName = a.HolidayName,
+                              FromDate = ((DateTime)a.FromDate).ToString("MM/dd/yyyy"),
+                              ToDate = ((DateTime)a.ToDate).ToString("MM/dd/yyyy"),
+                              //HolidayType = a.HolidayType
+                          }).ToList();
+            return result;
+        }
+
+        public CompannyWeekend CompannyWeekendList()
+        {
+            var result = (from mo in _context.HrmAtdCompanyWeekEnd
+                        .DefaultIfEmpty()
+                          select new
+                          {
+                              CompanyWeekEndCode = mo.CompanyWeekEndCode,
+                              EffectiveDate = mo.EffectiveDate,
+                              ApplyDate = mo.Ldate,
+                              Weekend = mo.Weekend
+
+        }).AsEnumerable().Select(a => new CompannyWeekend()
+                          {
+                              //CompanyWeekEndCode = a.CompanyWeekEndCode,
+                              Weekend = a.Weekend.Split(',').ToList(),
+                              EffectiveDate = ((DateTime)a.EffectiveDate).ToString("dd/MM/yyyy")
+                          }).OrderBy(x=> x.EffectiveDate).FirstOrDefault();
+            return result;
         }
 
         //public void DeleteSalesDaliveryLocation(SalesDeliveryLocation SalseDeliveryLocation)

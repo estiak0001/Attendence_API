@@ -1,8 +1,10 @@
 ﻿using APIES.GctlDBEntities;
 using APIES.Helper.ModelHelper;
+using APIES.Models.Holiday;
 using APIES.Models.Leave;
 using APIES.Models.ManualAttendence;
 using APIES.Models.Report;
+using APIES.Models.Weekend;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,5 +30,8 @@ namespace APIES.Services
         List<ATDLeaveType> GetAllLeaveType();
         LeaveApplicationEntryDto GetLeaveInfo(string LeaveAppEntryId);
         List<LeaveBalanceStatus> GetEmployeeLeaveStatus(string EmployeeID);
+
+        List<ATD_Holiday> GetAllHolidayInfo();
+        CompannyWeekend CompannyWeekendList();
     }
 }

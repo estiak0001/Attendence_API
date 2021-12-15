@@ -28,7 +28,7 @@ namespace APIES.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("GetEmployeeJobCard")]
+        [HttpPost("GetEmployeeJobCard")]
         public ActionResult<EmployeeJobCard> GetEmployeeJobCard([FromBody] paramJobCard data)
         {
             //12/12/2021

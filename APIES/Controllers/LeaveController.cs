@@ -36,14 +36,16 @@ namespace APIES.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("leaveLandingPage/{LeaveEntryID}/{EmployeeID}")]
+        [HttpGet("leaveLandingPage/{EmployeeID}/{LeaveEntryID}")]
         public ActionResult<LeaveApplicationEntryDto> LeaveLandingPage(string LeaveEntryID, string EmployeeID)
         {
-            if(LeaveEntryID== null)
+            if(LeaveEntryID== null || LeaveEntryID =="")
             {
                 LeaveApplicationEntryDto data = new LeaveApplicationEntryDto();
                 data.ATDLeaveType = _manualAttendenceService.GetAllLeaveType();
                 data.LeaveBalanceStatus = _manualAttendenceService.GetEmployeeLeaveStatus(EmployeeID);
+                data.HolidayList = _manualAttendenceService.GetAllHolidayInfo();
+                data.CompannyWeekendList = _manualAttendenceService.CompannyWeekendList().Weekend;
                 return data;
             }
             else
@@ -52,6 +54,8 @@ namespace APIES.Controllers
                 data = _manualAttendenceService.GetLeaveInfo(LeaveEntryID);
                 data.ATDLeaveType = _manualAttendenceService.GetAllLeaveType();
                 data.LeaveBalanceStatus = _manualAttendenceService.GetEmployeeLeaveStatus(EmployeeID);
+                data.HolidayList = _manualAttendenceService.GetAllHolidayInfo();
+                data.CompannyWeekendList = _manualAttendenceService.CompannyWeekendList().Weekend;
                 return data;
             }
         }
