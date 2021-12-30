@@ -1,4 +1,5 @@
 ﻿using APIES.GctlDBEntities;
+using APIES.Models.MachineData;
 using APIES.Models.ManualAttendence;
 using APIES.Services;
 using AutoMapper;
@@ -42,6 +43,27 @@ namespace APIES.Controllers
         //    var salesContactPerson = _salserDaliveryLocation.GetSalseContactPerson();
         //    return Ok(_mapper.Map<IEnumerable<SalesContactPersonDto>>(salesContactPerson));
         //}
+
+        [AllowAnonymous]
+        [HttpPost("addMachineData")]
+        public ActionResult<HrmAtdManualDto> AddMachineData(
+            [FromBody] HrmAtdMachineData_Dto hrmAtdMachineData_Dto)
+        {
+            //if (_manualAttendenceService.ManualAttendenceExists(hrmAtdManualDto.ManualCode) == true)
+            //{
+            //    return BadRequest(new { message = "Data Already Exist!" });
+            //}
+
+            var machineData = _mapper.Map<HrmAtdMachineData>(hrmAtdMachineData_Dto);
+            _manualAttendenceService.AddMachineData(machineData);
+            _manualAttendenceService.Save();
+
+            var mapedValue = _mapper.Map<HrmAtdMachineData_Dto>(machineData);
+            var result = _manualAttendenceService.GetLandingInfo(mapedValue.FingerPrintId);
+            return Ok(result);
+        }
+
+
         [AllowAnonymous]
         [HttpPost("addManualAttendence")]
         public ActionResult<HrmAtdManualDto> AddManualAttendence(

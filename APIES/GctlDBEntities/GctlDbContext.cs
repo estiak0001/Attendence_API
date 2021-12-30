@@ -17,7 +17,7 @@ namespace APIES.GctlDBEntities
             : base(options)
         {
         }
-        
+
         [Obsolete]
         public virtual DbQuery<LeaveBalanceStatus> LeaveBalanceStatus { get; set; }
         [Obsolete]
@@ -26,6 +26,7 @@ namespace APIES.GctlDBEntities
         public virtual DbQuery<CustomID> customID { get; set; }
         [Obsolete]
         public virtual DbQuery<IsLeaveExist> IsLeaveExist { get; set; }
+
         public virtual DbSet<AccDurationType> AccDurationType { get; set; }
         public virtual DbSet<AccMonths> AccMonths { get; set; }
         public virtual DbSet<AccPeriod> AccPeriod { get; set; }
@@ -356,7 +357,7 @@ namespace APIES.GctlDBEntities
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseSqlServer("Server=walton45461;Database=Att_DB;User Id=sa;password=Walton@2021;Trusted_Connection=False;MultipleActiveResultSets=true;");
+                optionsBuilder.UseSqlServer("Server=ESTIAK45461;Database=Att_DB;User Id=sa;password=Walton@2021;Trusted_Connection=False;MultipleActiveResultSets=true;");
             }
         }
 
@@ -825,8 +826,6 @@ namespace APIES.GctlDBEntities
 
             modelBuilder.Entity<HrmAtdMachineData>(entity =>
             {
-                entity.HasNoKey();
-
                 entity.Property(e => e.AutoId).ValueGeneratedOnAdd();
             });
 

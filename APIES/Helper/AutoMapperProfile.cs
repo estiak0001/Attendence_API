@@ -1,4 +1,5 @@
 ﻿using APIES.GctlDBEntities;
+using APIES.Models.MachineData;
 using APIES.Models.ManualAttendence;
 using APIES.Models.Users;
 using AutoMapper;
@@ -22,6 +23,9 @@ namespace APIES.Helper
 
             CreateMap<HrmAtdManualDto, HrmAtdManual>();
             CreateMap<HrmAtdManual, HrmAtdManualDto>();
+
+            CreateMap<HrmAtdMachineData_Dto, HrmAtdMachineData>();
+            CreateMap<HrmAtdMachineData, HrmAtdMachineData_Dto>();
         }
     }
 }

@@ -99,38 +99,51 @@ namespace APIES.Services
         {
             //var lastIn = _context.HrmAtdManual.Where(x => x.EmployeeId == EmployeeID).OrderBy(x => x.Time).FirstOrDefault();
 
-            var isData = _context.HrmAtdManual.Where(e => e.EmployeeId == EmployeeID).ToList();
+            var isData = _context.HrmAtdMachineData.Where(e => e.FingerPrintId == EmployeeID && e.Date == DateTime.Today).ToList();
             AttendenceInfoDto result = new AttendenceInfoDto();
+            List<AttListDto> datalist = new List<AttListDto>();
             if (isData.Count() != 0)
             {
-                 result = (from head in _context.HrmAtdManual.Where(e => e.EmployeeId == EmployeeID).AsEnumerable()
+                 result = (from head in _context.HrmAtdMachineData.Where(e => e.FingerPrintId == EmployeeID).AsEnumerable()
                               select new AttendenceInfoDto()
                               {
                                   Date = head.Date,
                                   Time = DateTime.ParseExact(String.Format("{0:dd/MM/yyyy h:mm:ss tt}", head.Time), "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture),
-                                  inTime = head.AttendanceTypeCode == "1" ? false : true,
-                                  outTime = head.AttendanceTypeCode == "2" ? false : true,
+                                  inTime = (_context.HrmAtdMachineData.Where(e => e.FingerPrintId == EmployeeID && e.Date == DateTime.Today).ToList().Count())%2 == 0 ? true : false,
+                                  outTime = (_context.HrmAtdMachineData.Where(e => e.FingerPrintId == EmployeeID && e.Date == DateTime.Today).ToList().Count()) % 2 == 0 ? false : true,
                               }).OrderByDescending(x => x.Date).ThenByDescending(x => x.Time.TimeOfDay).FirstOrDefault();
 
-                var result2 = (from head in _context.HrmAtdManual.Where(e => e.EmployeeId == EmployeeID).DefaultIfEmpty().AsEnumerable()
+                var result2 = (from head in _context.HrmAtdMachineData.Where(e => e.FingerPrintId == EmployeeID).DefaultIfEmpty().AsEnumerable()
                                select new AttListDto()
                                {
                                    Date = head.Date,
-                                   AttendenceType = head.AttendanceTypeCode == "1" ? "In" : "Out",
+                                   AttendenceType = head.IsIn == true ? "In" : "Out",
                                    Time = DateTime.ParseExact(String.Format("{0:dd/MM/yyyy h:mm:ss tt}", head.Time), "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture),
                                    AttDateANDTime = String.Format("{0:dd/MM/yyyy h:mm:ss tt}", head.Time),
                                    SLNO = 0
                                }).Where(p => p.Date == DateTime.Today).OrderByDescending(x => x.Date).ThenByDescending(x => x.Time.TimeOfDay).ToList();
                 int counter = 1;
                 result2.ForEach(x => x.SLNO = counter++);
-
+                //foreach (var item in result2)
+                //{
+                //    item.SLNO = counter++;
+                //    if(counter % 2 == 0)
+                //    {
+                //        item.AttendenceType = "In";
+                //    }
+                //    else
+                //    {
+                //        item.AttendenceType = "Out";
+                //    }
+                //    datalist.Add(item);
+                //}
                 result.AttendenceList = result2;
                 return result;
             }
 
             else
             {
-                result.inTime = false;
+                result.inTime = true;
                 result.outTime = false;
                 result.AttendenceList = new List<AttListDto>();
                 return result;
@@ -479,6 +492,42 @@ namespace APIES.Services
                               EffectiveDate = ((DateTime)a.EffectiveDate).ToString("dd/MM/yyyy")
                           }).OrderBy(x=> x.EffectiveDate).FirstOrDefault();
             return result;
+        }
+
+        public void AddMachineData(HrmAtdMachineData hrmAtdMachineData)
+        {
+            if (hrmAtdMachineData.FingerPrintId == "")
+            {
+                throw new ArgumentNullException(nameof(hrmAtdMachineData.FingerPrintId));
+            }
+
+            if (hrmAtdMachineData == null)
+            {
+                throw new ArgumentNullException(nameof(hrmAtdMachineData));
+            }
+
+            if (_context.HrmAtdMachineData.Where(e => e.FingerPrintId == hrmAtdMachineData.FingerPrintId && e.Date == DateTime.Today).ToList().Count() != 0)
+            {
+                if ((_context.HrmAtdMachineData.Where(e => e.FingerPrintId == hrmAtdMachineData.FingerPrintId && e.Date == DateTime.Today).ToList().Count()) % 2 == 0)
+                {
+                    hrmAtdMachineData.IsIn = true;
+                }
+                else
+                {
+                    hrmAtdMachineData.IsIn = false;
+                }
+            }
+            else
+            {
+                hrmAtdMachineData.IsIn = true;
+            }
+
+
+            hrmAtdMachineData.MachineId = "2";
+            hrmAtdMachineData.Date = DateTime.Today;
+            hrmAtdMachineData.Time = DateTime.Now;
+            
+            _context.HrmAtdMachineData.Add(hrmAtdMachineData);
         }
 
         //public void DeleteSalesDaliveryLocation(SalesDeliveryLocation SalseDeliveryLocation)

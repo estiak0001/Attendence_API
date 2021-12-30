@@ -19,6 +19,7 @@ namespace APIES.Services
         void UpdateManualAttendence(HrmAtdManual hrmAtdManual);
         void DeleteManualAttendence(HrmAtdManual hrmAtdManual);
         void AddManualAttendence(HrmAtdManual hrmAtdManual, string type);
+        void AddMachineData(HrmAtdMachineData hrmAtdMachineData);
         bool ManualAttendenceExists(string salseDaliveryLocation);
         AttendenceInfoDto GetLandingInfo(string EmployeeID);
         bool Save();
