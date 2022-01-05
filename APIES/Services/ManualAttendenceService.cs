@@ -523,7 +523,7 @@ namespace APIES.Services
             }
 
 
-            hrmAtdMachineData.MachineId = "2";
+            hrmAtdMachineData.MachineId = "9";
             hrmAtdMachineData.Date = DateTime.Today;
             hrmAtdMachineData.Time = DateTime.Now;
             
