@@ -530,6 +530,50 @@ namespace APIES.Services
             _context.HrmAtdMachineData.Add(hrmAtdMachineData);
         }
 
+        public List<LeaveApplicationEntryDto> GetAllLeaveInfo(string empID, string status)
+        {
+            var result = (
+                    from mo in _context.HrmLeaveApplicationEntry
+                    from em in _context.HrmEmployee.Where(em => em.EmployeeId == mo.EmployeeId).DefaultIfEmpty()
+                    from emleaveType in _context.HrmAtdLeaveType.Where(eml => eml.LeaveTypeId == mo.LeaveTypeId).DefaultIfEmpty()
+                                                  .DefaultIfEmpty()
+                    select new
+                    {
+                        LeaveAppEntryId = mo.LeaveAppEntryId,
+                        EmployeeID = mo.EmployeeId,
+                        ApplyDate = mo.Ldate,
+                        EmployeeName = em.FirstName + " " + em.LastName,
+                        StartDate = mo.StartDate,
+                        EndDate = mo.EndDate,
+                        NoOfDay = mo.NoOfDay,
+                        Reason = mo.Reason,
+                        Stattus = mo.HrapprovalStatus,
+                        LeaveType = emleaveType.Name,
+                        format = mo.ApplyLeaveFormat,
+                        shortLeaveFrom = mo.ShortLeaveFrom,
+                        shortleaveTo = mo.ShortLeaveTo,
+                        shortleaveTime = mo.ShortLeaveTime,
+
+                    }).Where(em => (em.EmployeeID == empID)).AsEnumerable().Select(a => new LeaveApplicationEntryDto()
+                    {
+                        LeaveAppEntryId = a.LeaveAppEntryId.ToString(),
+                        EmployeeID = a.EmployeeID,
+                        EmployeeName = a.EmployeeName,
+                        ApplyDate = ((DateTime)a.ApplyDate).ToString("dd/MM/yyyy"),
+                        StartDate = ((DateTime)a.StartDate).ToString("dd/MM/yyyy"),
+                        EndDate = ((DateTime)a.EndDate).ToString("dd/MM/yyyy"),
+                        NoOfDay = a.NoOfDay,
+                        Reason = a.Reason,
+                        HRApprovalStatus = a.Stattus,
+                        LeaveType = a.LeaveType,
+                        ApplyLeaveFormat = a.format,
+                        ShortLeaveFrom = a.shortLeaveFrom == null ? "" : ((DateTime)a.shortLeaveFrom).ToString("hh:mm tt"),
+                        ShortLeaveTo = a.shortleaveTo == null ? "" : ((DateTime)a.shortleaveTo).ToString("hh:mm tt"),
+                        ShortLeaveTime = a.shortleaveTime.ToString()
+                    }).Where(x=> status == "All" || x.HRApprovalStatus == status).ToList();
+            return result;
+        }
+
         //public void DeleteSalesDaliveryLocation(SalesDeliveryLocation SalseDeliveryLocation)
         //{
         //    throw new NotImplementedException();

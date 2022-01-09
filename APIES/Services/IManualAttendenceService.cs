@@ -34,5 +34,7 @@ namespace APIES.Services
 
         List<ATD_Holiday> GetAllHolidayInfo();
         CompannyWeekend CompannyWeekendList();
+
+        List<LeaveApplicationEntryDto> GetAllLeaveInfo(string empID, string status);
     }
 }

@@ -52,5 +52,7 @@ namespace APIES.Models.Leave
         public List<LeaveBalanceStatus> LeaveBalanceStatus { get; set; }
         //public List<CompannyWeekend> CompannyWeekendList { get; set; }
         public List<ATD_Holiday> HolidayList { get; set; }
+
+        public List<LeaveApplicationEntryDto> LeaveHistory { get; set; }
     }
 }
